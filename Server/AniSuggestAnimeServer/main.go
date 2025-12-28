@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TheDevotion/AniSuggest/Server/AniSuggestAnimeServer/routes"
 	"github.com/joho/godotenv"
+
+	"github.com/TheDevotion/AniSuggest/Server/AniSuggestAnimeServer/routes"
 
 	"github.com/TheDevotion/AniSuggest/Server/AniSuggestAnimeServer/database"
 	"github.com/gin-contrib/cors"
