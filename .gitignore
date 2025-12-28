@@ -1,0 +1,24 @@
+# Node Dependencies
+client/ani-suggest-client/node_modules/
+client/ani-suggest-client/dist/
+node_modules/
+dist/
+
+# Go build artifacts
+Server/AniSuggestServer/app
+Server/AniSuggestServer/bin/
+*.exe
+*.dll
+*.out
+
+# OS files
+.DS_Store
+.vscode/
+
+# Environment files
+Client/ani-suggest-client/.env
+Server/AniSuggestServer/.env
+.env
+*.env
+
+
