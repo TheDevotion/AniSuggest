@@ -1,7 +1,7 @@
 import {Form, Button} from 'react-bootstrap';
 import { useRef,useEffect,useState } from 'react';
 import {useParams} from 'react-router-dom'
-//import axiosPrivate from '../../api/axiosPrivateConfig';
+// import axiosPrivate from '../../api/axiosPrivateConfig';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import useAuth from '../../hooks/useAuth';
 import Anime from '../anime/Anime'
@@ -65,7 +65,7 @@ const Review = () => {
             setLoading(false);
         }
     }; 
-
+    console.log("Current Auth state: ", auth)
     return (
       <>
         {loading ? (

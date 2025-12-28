@@ -223,12 +223,12 @@ func LogoutHandler(client *mongo.Client) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 	}
 }
-
 func RefreshTokenHandler(client *mongo.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(c, 100*time.Second)
 		defer cancel()
 
+		// 1. Get the Refresh Token from Cookie
 		refreshToken, err := c.Cookie("refresh_token")
 
 		if err != nil {
@@ -237,6 +237,7 @@ func RefreshTokenHandler(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
+		// 2. Validate the Refresh Token
 		claim, err := utils.ValidateRefreshToken(refreshToken)
 		if err != nil || claim == nil {
 			fmt.Println("error", err.Error())
@@ -244,9 +245,10 @@ func RefreshTokenHandler(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
+		// 3. Find the User in the Database
 		var userCollection *mongo.Collection = database.OpenCollection("users", client)
-
 		var user models.User
+
 		err = userCollection.FindOne(ctx, bson.D{{Key: "user_id", Value: claim.UserId}}).Decode(&user)
 
 		if err != nil {
@@ -254,16 +256,26 @@ func RefreshTokenHandler(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
+		// 4. Generate NEW Tokens
 		newToken, newRefreshToken, _ := utils.GenerateAllTokens(user.Email, user.FirstName, user.LastName, user.Role, user.UserID)
+
+		// 5. Update the User's tokens in the Database
 		err = utils.UpdateAllTokens(user.UserID, newToken, newRefreshToken, client)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating tokens"})
 			return
 		}
 
-		c.SetCookie("access_token", newToken, 86400, "/", "localhost", true, true)          // expires in 24 hours
-		c.SetCookie("refresh_token", newRefreshToken, 604800, "/", "localhost", true, true) //expires in 1 week
+		// 6. Set Cookies (Note: Secure=false is often safer for localhost HTTP)
+		c.SetCookie("access_token", newToken, 86400, "/", "localhost", false, true)
+		c.SetCookie("refresh_token", newRefreshToken, 604800, "/", "localhost", false, true)
 
-		c.JSON(http.StatusOK, gin.H{"message": "Tokens refreshed"})
+		// 7. CRITICAL FIX: Return the Token and Role in the JSON body!
+		c.JSON(http.StatusOK, gin.H{
+			"token":        newToken, // <--- This fixes the "undefined" token error
+			"refreshToken": newRefreshToken,
+			"role":         user.Role, // <--- This ensures you stay an ADMIN
+			"message":      "Tokens refreshed",
+		})
 	}
 }
